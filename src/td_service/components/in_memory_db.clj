@@ -1,12 +1,15 @@
 (ns td-service.components.in-memory-db
-  (:require [com.stuartsierra.component :as component]))
+  (:require [com.stuartsierra.component :as component]
+            [td-service.db.atom-db :as db]))
+
+
 
 (defrecord InMemoryDB []
   component/Lifecycle
 
   (start [this]
     (println "Star InMemoryDB!")
-    (assoc this :db (atom {})))
+    (assoc this :db db/atom-db))
 
   (stop [this]
     (println "Stop InMemoryDB!")
