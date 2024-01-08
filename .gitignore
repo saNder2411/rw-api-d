@@ -1,0 +1,17 @@
+/.calva
+/.clj-kondo
+/.lsp
+/target
+/classes
+/checkouts
+profiles.clj
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+/.lein-*
+/.nrepl-port
+/.prepl-port
+.hgignore
+.hg/
+rwa@localhost.session.sql
