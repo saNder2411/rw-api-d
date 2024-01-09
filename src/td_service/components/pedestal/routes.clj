@@ -1,6 +1,6 @@
 (ns td-service.components.pedestal.routes
   (:require [io.pedestal.http.route :as route]
-            [io.pedestal.http :as http]
+            [io.pedestal.interceptor :as interceptor]
             [td-service.db.atom-db :as m-db]))
 
 (defn response [status body & {:as headers}]
@@ -9,15 +9,21 @@
 (def ok (partial response 200))
 (def created (partial response 201))
 
-
+(defn inject-dependencies [dependencies]
+  (interceptor/interceptor
+    {:name  ::inject-dependencies
+     :enter #(assoc % :dependencies dependencies)}))
 
 (def db-interceptor {:name  :db-interceptor
-                     :enter #(update % :request assoc :database @m-db/atom-db)
+                     :enter (fn [ctx]
+                              (let [atom-db (get-in ctx [:dependencies :in-memory-db :db])]
+                                (update ctx :request assoc :database @atom-db)))
+
                      :leave (fn [ctx]
                               (if-let [[operation & args] (:tx-data ctx)]
-                                (do
-                                  (apply swap! m-db/atom-db operation args)
-                                  (assoc-in ctx [:request :database] @m-db/atom-db))
+                                (let [atom-db (get-in ctx [:dependencies :in-memory-db :db])]
+                                  (apply swap! atom-db operation args)
+                                  (assoc-in ctx [:request :database] @atom-db))
                                 ctx))})
 
 (def entity-render {:name  :entity-render

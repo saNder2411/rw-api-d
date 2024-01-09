@@ -2,8 +2,6 @@
   (:require [com.stuartsierra.component :as component]
             [td-service.db.atom-db :as db]))
 
-
-
 (defrecord InMemoryDB []
   component/Lifecycle
 

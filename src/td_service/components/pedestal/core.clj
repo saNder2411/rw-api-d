@@ -16,6 +16,8 @@
                         ::http/type   :jetty
                         ::http/join?  false
                         ::http/port   (-> config :server :port)}
+                       http/default-interceptors
+                       (update ::http/interceptors concat [(routes/inject-dependencies this)])
                        http/create-server)]
 
         (assoc this :server (cond-> server
