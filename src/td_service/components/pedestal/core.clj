@@ -24,7 +24,7 @@
                                     (not (test? config)) http/start)))))
 
   (stop [this]
-    (print "Stop Pedestal!")
+    (println "Stop Pedestal!")
     (when (and (:server this) (not (test? config)))
       (http/stop (:server this)))
     (assoc this :server nil)))

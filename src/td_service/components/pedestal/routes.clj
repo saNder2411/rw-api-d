@@ -99,7 +99,7 @@
                                           (and list-id item-id) (assoc :tx-data [m-db/delete-list-item list-id item-id]))))})
 
 (defn respond-hello [_request]
-  {:status 200 :body "Hello, Clojure!"})
+  {:status 200 :body "Hello, World!"})
 
 (def routes
   (route/expand-routes
