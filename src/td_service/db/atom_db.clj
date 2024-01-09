@@ -34,3 +34,9 @@
       (update-in db-val [l-id :items i-id] merge item new-state))
     db-val))
 
+;;;
+;;; Domain functions
+;;;
+(defn make-list [title] {:title title :items {}})
+
+(defn make-list-item [title l-id] {:list-id l-id :title title :done? false})
