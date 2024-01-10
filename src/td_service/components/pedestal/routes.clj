@@ -1,6 +1,8 @@
 (ns td-service.components.pedestal.routes
   (:require [io.pedestal.http.route :as route]
+            [clojure.data.json :as json]
             [io.pedestal.interceptor :as interceptor]
+            [io.pedestal.http.content-negotiation :as cn]
             [td-service.db.atom-db :as m-db]))
 
 (defn response [status body & {:as headers}]
@@ -8,6 +10,29 @@
 
 (def ok (partial response 200))
 (def created (partial response 201))
+
+(def supported-types ["application/json" "application/edn" "text/html" "text/plain"])
+
+(def content-negotiation (cn/negotiate-content supported-types))
+
+(defn accepted-type [ctx] (get-in ctx [:request :accept :field] "application/json"))
+
+(defn transform-content [body content-type]
+  (case content-type
+    "application/json" (json/write-str body)
+    body))
+
+(defn coerce-to [response content-type]
+  (-> response
+      (update :body transform-content content-type)
+      (assoc-in [:headers "Content-Type"] content-type)))
+
+(def coerce-body-interceptor (interceptor/interceptor
+                               {:name  ::coerce-body
+                                :leave (fn [ctx]
+                                         (let [content-typ (get-in ctx [:response :headers "Content-Type"])]
+                                           (cond-> ctx
+                                                   (nil? content-typ) (update :response coerce-to (accepted-type ctx)))))}))
 
 (defn inject-dependencies [dependencies]
   (interceptor/interceptor
@@ -37,7 +62,7 @@
 
 (def lists-view (interceptor/interceptor
                   {:name  :lists-view
-                   :enter (fn [ctx]
+                   :leave (fn [ctx]
                             (assoc ctx :result {:body (get-in ctx [:request :database])}))}))
 
 (def list-view (interceptor/interceptor
@@ -52,7 +77,7 @@
                    {:name  :list-create
                     :enter (fn [ctx]
                              (let [title (get-in ctx [:request :query-params :title] "Unnamed List")
-                                   db-id (str "l-" (random-uuid))
+                                   db-id (str (random-uuid))
                                    new-list (m-db/make-list title db-id)
                                    url (route/url-for :list-view :params {:list-id db-id})]
                                (assoc ctx :result {:created? true :body new-list :headers ["Location" url]}
@@ -87,7 +112,7 @@
                          :enter (fn [ctx]
                                   (if-let [list-id (get-in ctx [:request :path-params :list-id])]
                                     (let [title (get-in ctx [:request :query-params :title] "Unnamed Item")
-                                          db-id (str list-id "-i-" (random-uuid))
+                                          db-id (str (random-uuid))
                                           new-item (m-db/make-list-item title list-id db-id)
                                           url (route/url-for :list-item-view :params {:list-id list-id :item-id db-id})]
                                       (assoc ctx :result {:created? true :body new-item :headers ["Location" url]}

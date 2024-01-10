@@ -1,23 +1,9 @@
 (ns td-service.db.atom-db)
-;;;
-;;; Domain functions
-;;;
-(defn make-list [title id] {:id id :title title :items {}})
 
-(defn make-list-item [title l-id id] {:id id :list-id l-id :title title :done? false})
-;;;
-;;; Test list
-;;;
-(def test-list-id (str "l-" (random-uuid)))
-(def test-item-id (str test-list-id "-i-" (random-uuid)))
-
-(def test-list (let [list (make-list "Test List" test-list-id)
-                     list-item (make-list-item "Test Item" test-list-id test-item-id)]
-                 (assoc list :items {test-item-id list-item})))
 ;;;
 ;;; Atom DB
 ;;;
-(defonce atom-db (atom {test-list-id test-list}))
+(defonce atom-db (atom {}))
 
 (defn get-list-by-id [db-val id] (get db-val id))
 
@@ -50,3 +36,10 @@
     (let [item (get-in db-val [l-id :items i-id])]
       (update-in db-val [l-id :items i-id] merge item new-state))
     db-val))
+
+;;;
+;;; Domain functions
+;;;
+(defn make-list [title id] {:id id :title title :items {}})
+
+(defn make-list-item [title l-id id] {:id id :list-id l-id :title title :done? false})

@@ -1,7 +1,7 @@
 (ns td-service.components.pedestal.core
   (:require [com.stuartsierra.component :as component]
             [io.pedestal.http :as http]
-            [td-service.components.pedestal.routes :as routes]))
+            [td-service.components.pedestal.routes :as r]))
 
 (defn test? [config] (= :test (:env config)))
 
@@ -12,12 +12,14 @@
     (println "Start http pedestal component!")
     (if (:server this)
       this
-      (let [server (-> {::http/routes routes/routes
+      (let [server (-> {::http/routes r/routes
                         ::http/type   :jetty
                         ::http/join?  false
                         ::http/port   (-> config :server :port)}
                        http/default-interceptors
-                       (update ::http/interceptors into [(routes/inject-dependencies this)])
+                       (update ::http/interceptors into [(r/inject-dependencies this)
+                                                         r/coerce-body-interceptor
+                                                         r/content-negotiation])
                        http/create-server)]
 
         (assoc this :server (cond-> server
