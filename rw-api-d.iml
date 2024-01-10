@@ -27,11 +27,13 @@
     <orderEntry type="library" name="Deps: com.stuartsierra/component.repl:0.2.0" level="project" />
     <orderEntry type="library" name="Deps: com.fasterxml.jackson.core/jackson-databind:2.15.2" level="project" />
     <orderEntry type="library" name="Deps: org.clojure/spec.alpha:0.3.218" level="project" />
+    <orderEntry type="library" name="Deps: org.clojure/tools.cli:1.0.206" level="project" />
     <orderEntry type="library" name="Deps: org.eclipse.jetty.http2/http2-server:9.4.52.v20230823" level="project" />
     <orderEntry type="library" name="Deps: commons-fileupload:1.5" level="project" />
     <orderEntry type="library" name="Deps: org.eclipse.jetty/jetty-http:9.4.52.v20230823" level="project" />
     <orderEntry type="library" name="Deps: org.eclipse.jetty/jetty-util:9.4.52.v20230823" level="project" />
     <orderEntry type="library" name="Deps: com.github.docker-java/docker-java-transport-zerodep:3.3.4" level="project" />
+    <orderEntry type="library" name="Deps: io.github.cognitect-labs/test-runner:dfb30d" level="project" />
     <orderEntry type="library" name="Deps: org.apache.httpcomponents/httpasyncclient:4.1.4" level="project" />
     <orderEntry type="library" name="Deps: org.clojure/tools.analyzer.jvm:1.2.2" level="project" />
     <orderEntry type="library" name="Deps: io.pedestal/pedestal.log:0.6.1" level="project" />
@@ -48,7 +50,7 @@
     <orderEntry type="library" name="Deps: commons-io:2.11.0" level="project" />
     <orderEntry type="library" name="Deps: org.postgresql/postgresql:42.7.1" level="project" />
     <orderEntry type="library" name="Deps: com.fasterxml.jackson.dataformat/jackson-dataformat-toml:2.15.2" level="project" />
-    <orderEntry type="library" name="Deps: org.clojure/tools.namespace:0.2.11" level="project" />
+    <orderEntry type="library" name="Deps: org.clojure/tools.namespace:1.3.0" level="project" />
     <orderEntry type="library" name="Deps: com.github.seancorfield/honeysql:2.5.1103" level="project" />
     <orderEntry type="library" name="Deps: org.eclipse.jetty.http2/http2-hpack:9.4.52.v20230823" level="project" />
     <orderEntry type="library" name="Deps: org.eclipse.jetty.websocket/websocket-client:9.4.52.v20230823" level="project" />
@@ -70,6 +72,7 @@
     <orderEntry type="library" name="Deps: riddley:0.1.12" level="project" />
     <orderEntry type="library" name="Deps: io.opentracing/opentracing-api:0.33.0" level="project" />
     <orderEntry type="library" name="Deps: org.javassist/javassist:3.18.1-GA" level="project" />
+    <orderEntry type="library" name="Deps: org.clojure/java.classpath:1.0.0" level="project" />
     <orderEntry type="library" name="Deps: commons-logging:1.2" level="project" />
     <orderEntry type="library" name="Deps: faker:0.3.2" level="project" />
     <orderEntry type="library" name="Deps: org.testcontainers/jdbc:1.19.3" level="project" />

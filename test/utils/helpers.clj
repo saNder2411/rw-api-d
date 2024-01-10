@@ -1,4 +1,4 @@
-(ns helpers.common
+(ns utils.helpers
   (:require [com.stuartsierra.component :as component]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
