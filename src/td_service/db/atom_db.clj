@@ -3,43 +3,39 @@
 ;;;
 ;;; Atom DB
 ;;;
-(defonce atom-db (atom {}))
+(defonce atom-db (atom {:list-collection {}
+                        :item-collection {}}))
 
-(defn get-list-by-id [db-val id] (get db-val id))
-
-(defn get-list-item-by-id [db-val l-id i-id] (get-in db-val [l-id :items i-id] nil))
-
-(defn delete-list [db-val id]
-  (if (contains? db-val id)
-    (dissoc db-val id)
+(defn update-element [db-val collection-key id new-state]
+  (if (contains? (get db-val collection-key) id)
+    (update-in db-val [collection-key id] into new-state)
     db-val))
 
-(defn update-list [db-val id new-state]
-  (if (contains? db-val id)
-    (let [list (get db-val id)
-          new-list (into list new-state)]
-      (assoc db-val id new-list))
+(defn delete-element [db-val collection-key id]
+  (if (contains? (get db-val collection-key) id)
+    (let [collection (get db-val collection-key)]
+      (assoc db-val collection-key (dissoc collection id)))
     db-val))
 
-(defn create-list-item [db-val l-id i-id new-item]
-  (if (contains? db-val l-id)
-    (assoc-in db-val [l-id :items i-id] new-item)
+(defn create-item-el [db-val l-id i-id new-item]
+  (if (contains? (get db-val :list-collection) l-id)
+    (-> db-val
+        (assoc-in [:item-collection i-id] new-item)
+        (update-in [:list-collection l-id :item-ids] conj i-id))
     db-val))
 
-(defn delete-list-item [db-val l-id i-id]
-  (if (contains? db-val l-id)
-    (update-in db-val [l-id :items] dissoc i-id)
-    db-val))
-
-(defn update-list-item [db-val l-id i-id new-state]
-  (if (contains? db-val l-id)
-    (let [item (get-in db-val [l-id :items i-id])]
-      (update-in db-val [l-id :items i-id] merge item new-state))
+(defn delete-item-el [db-val l-id i-id]
+  (if (contains? (get db-val :list-collection) l-id)
+    (let [item-coll (get db-val :item-collection)
+          n-item-coll (dissoc item-coll i-id)]
+      (-> db-val
+          (update-in [:list-collection l-id :item-ids] (fn [ids] (filter #(not (= i-id %)) ids)))
+          (assoc :item-collection n-item-coll)))
     db-val))
 
 ;;;
 ;;; Domain functions
 ;;;
-(defn make-list [title id] {:id id :title title :items {}})
+(defn make-list [id nm] {:id id :name nm :item-ids []})
 
-(defn make-list-item [title l-id id] {:id id :list-id l-id :title title :done? false})
+(defn make-item [id l-id nm] {:id id :list-id l-id :name nm :done? false})

@@ -63,76 +63,76 @@
 (def lists-view (interceptor/interceptor
                   {:name  :lists-view
                    :leave (fn [ctx]
-                            (assoc ctx :result {:body (get-in ctx [:request :database])}))}))
+                            (assoc ctx :result {:body (get-in ctx [:request :database :list-collection])}))}))
 
 (def list-view (interceptor/interceptor
                  {:name  :list-view
                   :leave (fn [ctx]
                            (let [id (get-in ctx [:request :path-params :list-id])
-                                 the-list (and id (m-db/get-list-by-id (get-in ctx [:request :database]) id))]
+                                 the-list (and id (get-in ctx [:request :database :list-collection id]))]
                              (cond-> ctx
                                      the-list (assoc :result {:body the-list}))))}))
 
 (def list-create (interceptor/interceptor
                    {:name  :list-create
                     :enter (fn [ctx]
-                             (let [title (get-in ctx [:request :query-params :title] "Unnamed List")
+                             (let [nm (get-in ctx [:request :query-params :name] "Unnamed List")
                                    db-id (str (random-uuid))
-                                   new-list (m-db/make-list title db-id)
+                                   new-list (m-db/make-list db-id nm)
                                    url (route/url-for :list-view :params {:list-id db-id})]
                                (assoc ctx :result {:created? true :body new-list :headers ["Location" url]}
-                                          :tx-data [assoc db-id new-list])))}))
+                                          :tx-data [assoc-in [:list-collection db-id] new-list])))}))
 
 (def list-update (interceptor/interceptor
                    {:name  :list-update
                     :enter (fn [ctx]
                              (let [list-id (get-in ctx [:request :path-params :list-id])
-                                   new-list (get-in ctx [:request :query-params] {})]
+                                   new-state (get-in ctx [:request :query-params] {})]
                                (cond-> ctx
-                                       list-id (assoc :tx-data [m-db/update-list list-id new-list]))))}))
+                                       list-id (assoc :tx-data [m-db/update-element :list-collection list-id new-state]))))}))
 
 (def list-delete (interceptor/interceptor
                    {:name  :list-delete
                     :enter (fn [ctx]
                              (let [list-id (get-in ctx [:request :path-params :list-id])]
                                (cond-> ctx
-                                       list-id (assoc :tx-data [m-db/delete-list list-id]))))}))
-
-(def list-item-view (interceptor/interceptor
-                      {:name  :list-item-view
-                       :leave (fn [ctx]
-                                (let [l-id (get-in ctx [:request :path-params :list-id])
-                                      i-id (and l-id (get-in ctx [:request :path-params :item-id]))
-                                      item (and i-id (m-db/get-list-item-by-id (get-in ctx [:request :database]) l-id i-id))]
-                                  (cond-> ctx
-                                          item (assoc :result {:body item}))))}))
+                                       list-id (assoc :tx-data [m-db/delete-element :list-collection list-id]))))}))
 
 (def list-item-create (interceptor/interceptor
                         {:name  :list-item-create
                          :enter (fn [ctx]
                                   (if-let [list-id (get-in ctx [:request :path-params :list-id])]
-                                    (let [title (get-in ctx [:request :query-params :title] "Unnamed Item")
+                                    (let [nm (get-in ctx [:request :query-params :name] "Unnamed Item")
                                           db-id (str (random-uuid))
-                                          new-item (m-db/make-list-item title list-id db-id)
+                                          new-item (m-db/make-item db-id list-id nm)
                                           url (route/url-for :list-item-view :params {:list-id list-id :item-id db-id})]
                                       (assoc ctx :result {:created? true :body new-item :headers ["Location" url]}
-                                                 :tx-data [m-db/create-list-item list-id db-id new-item]))
+                                                 :tx-data [m-db/create-item-el list-id db-id new-item]))
                                     ctx))}))
+
+(def list-item-view (interceptor/interceptor
+                      {:name  :list-item-view
+                       :leave (fn [ctx]
+                                (let [id (get-in ctx [:request :path-params :item-id])
+                                      item (get-in ctx [:request :database :item-collection id])]
+                                  (cond-> ctx
+                                          item (assoc :result {:body item}))))}))
+
 
 (def list-item-update (interceptor/interceptor
                         {:name  :list-item-update
                          :enter (fn [ctx]
-                                  (let [{:keys [list-id item-id]} (get-in ctx [:request :path-params])
-                                        new-item (get-in ctx [:request :query-params] {})]
+                                  (let [{:keys [item-id]} (get-in ctx [:request :path-params])
+                                        new-state (get-in ctx [:request :query-params] {})]
                                     (cond-> ctx
-                                            (and list-id item-id) (assoc :tx-data [m-db/update-list-item list-id item-id new-item]))))}))
+                                            item-id (assoc :tx-data [m-db/update-element :item-collection item-id new-state]))))}))
 
 (def list-item-delete (interceptor/interceptor
                         {:name  :list-item-delete
                          :enter (fn [ctx]
                                   (let [{:keys [list-id item-id]} (get-in ctx [:request :path-params])]
                                     (cond-> ctx
-                                            (and list-id item-id) (assoc :tx-data [m-db/delete-list-item list-id item-id]))))}))
+                                            item-id (assoc :tx-data [m-db/delete-item-el list-id item-id]))))}))
 
 (def routes
   (route/expand-routes
