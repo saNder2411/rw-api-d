@@ -1,8 +1,9 @@
 (ns td-service.system.system-test
   (:require [clojure.test :refer [deftest testing is run-tests]]
             [io.pedestal.test :refer [response-for]]
-            [td-service.system.helpers-test :as h]
-            [td-service.core :as core]))
+            [clojure.data.json :as json]
+            [td-service.core :as core]
+            [td-service.system.helpers :as h]))
 
 (def sut (gensym "sut"))
 
@@ -52,8 +53,11 @@
                        (is (= "_TEST_!" (:name body-clj-map)))))
 
                    (testing "/todo/:list-id :post"
-                     (let [url (h/url-for :list-item-create :path-params {:list-id @test-list-id} :query-params {:name "_TEST_ITEM_"})
-                           {:keys [status body]} (response-for service :post url :headers {"Accept" "application/edn"})
+                     (let [url (h/url-for :list-item-create :path-params {:list-id @test-list-id})
+                           headers {"Accept" "application/edn"
+                                    "Content-Type" "application/json"}
+                           body (json/write-str {:name "_TEST_ITEM_" :done? false})
+                           {:keys [status body]} (response-for service :post url :headers headers :body body)
                            body-clj-map (read-string body)]
                        (swap! test-item-id (fn [_] (:id body-clj-map)))
                        (is (= 201 status))

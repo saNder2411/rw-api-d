@@ -38,4 +38,4 @@
 ;;;
 (defn make-list [id nm] {:id id :name nm :item-ids []})
 
-(defn make-item [id l-id nm] {:id id :list-id l-id :name nm :done? false})
+(defn make-item [id l-id item] (into {:id id :list-id l-id} item))

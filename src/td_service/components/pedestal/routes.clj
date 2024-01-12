@@ -3,7 +3,9 @@
             [clojure.data.json :as json]
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.content-negotiation :as cn]
-            [td-service.db.atom-db :as m-db]))
+            [io.pedestal.http.body-params :as body-params]
+            [td-service.db.atom-db :as m-db]
+            [schema.core :as s]))
 
 (defn response [status body & {:as headers}]
   {:status status :body body :headers headers})
@@ -60,6 +62,16 @@
                                    (assoc ctx :response (apply response-fn body headers)))
                                  ctx))}))
 
+(def list-create (interceptor/interceptor
+                   {:name  :list-create
+                    :enter (fn [ctx]
+                             (let [nm (get-in ctx [:request :query-params :name] "Unnamed List")
+                                   db-id (str (random-uuid))
+                                   new-list (m-db/make-list db-id nm)
+                                   url (route/url-for :list-view :params {:list-id db-id})]
+                               (assoc ctx :result {:created? true :body new-list :headers ["Location" url]}
+                                          :tx-data [assoc-in [:list-collection db-id] new-list])))}))
+
 (def lists-view (interceptor/interceptor
                   {:name  :lists-view
                    :leave (fn [ctx]
@@ -73,15 +85,6 @@
                              (cond-> ctx
                                      the-list (assoc :result {:body the-list}))))}))
 
-(def list-create (interceptor/interceptor
-                   {:name  :list-create
-                    :enter (fn [ctx]
-                             (let [nm (get-in ctx [:request :query-params :name] "Unnamed List")
-                                   db-id (str (random-uuid))
-                                   new-list (m-db/make-list db-id nm)
-                                   url (route/url-for :list-view :params {:list-id db-id})]
-                               (assoc ctx :result {:created? true :body new-list :headers ["Location" url]}
-                                          :tx-data [assoc-in [:list-collection db-id] new-list])))}))
 
 (def list-update (interceptor/interceptor
                    {:name  :list-update
@@ -98,13 +101,17 @@
                                (cond-> ctx
                                        list-id (assoc :tx-data [m-db/delete-element :list-collection list-id]))))}))
 
+(s/defschema Item
+  {:name  s/Str
+   :done? s/Bool})
+
 (def list-item-create (interceptor/interceptor
                         {:name  :list-item-create
                          :enter (fn [ctx]
                                   (if-let [list-id (get-in ctx [:request :path-params :list-id])]
-                                    (let [nm (get-in ctx [:request :query-params :name] "Unnamed Item")
+                                    (let [json-body (get-in ctx [:request :json-params])
                                           db-id (str (random-uuid))
-                                          new-item (m-db/make-item db-id list-id nm)
+                                          new-item (m-db/make-item db-id list-id (s/validate Item json-body))
                                           url (route/url-for :list-item-view :params {:list-id list-id :item-id db-id})]
                                       (assoc ctx :result {:created? true :body new-item :headers ["Location" url]}
                                                  :tx-data [m-db/create-item-el list-id db-id new-item]))
@@ -142,7 +149,7 @@
       ["/todo/:list-id" :put [entity-render list-view db-interceptor list-update]]
       ["/todo/:list-id" :delete [entity-render lists-view db-interceptor list-delete]]
 
-      ["/todo/:list-id" :post [entity-render db-interceptor list-item-create]]
+      ["/todo/:list-id" :post [(body-params/body-params) entity-render db-interceptor list-item-create]]
       ["/todo/:list-id/:item-id" :get [entity-render db-interceptor list-item-view]]
-      ["/todo/:list-id/:item-id" :put [entity-render list-item-view db-interceptor list-item-update]]
+      ["/todo/:list-id/:item-id" :put [(body-params/body-params) entity-render list-item-view db-interceptor list-item-update]]
       ["/todo/:list-id/:item-id" :delete [entity-render list-view db-interceptor list-item-delete]]}))
