@@ -101,7 +101,7 @@
                                (cond-> ctx
                                        list-id (assoc :tx-data [m-db/delete-element :list-collection list-id]))))}))
 
-(s/defschema Item
+(s/defschema ItemJson
   {:name  s/Str
    :done? s/Bool})
 
@@ -111,7 +111,7 @@
                                   (if-let [list-id (get-in ctx [:request :path-params :list-id])]
                                     (let [json-body (get-in ctx [:request :json-params])
                                           db-id (str (random-uuid))
-                                          new-item (m-db/make-item db-id list-id (s/validate Item json-body))
+                                          new-item (m-db/make-item db-id list-id (s/validate ItemJson json-body))
                                           url (route/url-for :list-item-view :params {:list-id list-id :item-id db-id})]
                                       (assoc ctx :result {:created? true :body new-item :headers ["Location" url]}
                                                  :tx-data [m-db/create-item-el list-id db-id new-item]))
