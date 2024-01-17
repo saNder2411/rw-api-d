@@ -6,12 +6,12 @@
   component/Lifecycle
 
   (start [this]
-    (println "Star InMemoryDB!")
+    (println "Star TD_S InMemoryDB!")
     (assoc this :db db/atom-db))
 
   (stop [this]
-    (println "Stop InMemoryDB!")
-    (assoc this :db nil)))
+    (println "Stop TD_S InMemoryDB!")
+    (assoc this :db nil :htmx-click-to-edit-state nil)))
 
 (defn create-in-memory-db []
   (map->InMemoryDB {}))

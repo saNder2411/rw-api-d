@@ -1,7 +1,7 @@
 (ns td-service.unit.interceptor-test
   (:require [clojure.test :refer [deftest testing is run-tests]]
             [io.pedestal.interceptor.chain :as chain]
-            [td-service.components.pedestal.routes :as r]))
+            [td-service.routes.list :as r]))
 
 (deftest interceptor-test
   #_(testing "db-interceptor-test"

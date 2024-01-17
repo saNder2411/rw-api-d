@@ -1,4 +1,4 @@
-(ns td-service.config
+(ns config
   (:require [aero.core :as aero]
             [clojure.java.io :as io]))
 

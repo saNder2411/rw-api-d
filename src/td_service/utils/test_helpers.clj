@@ -1,12 +1,12 @@
-(ns td-service.system.helpers
+(ns td-service.utils.test-helpers
   (:require [com.stuartsierra.component :as component]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
-            [td-service.components.pedestal.routes :as routes]
             [clojure.string :as string])
   (:import (java.net ServerSocket)))
 
-(def url-for (route/url-for-routes routes/routes))
+(defn url-for-routes [system server-name]
+  (route/url-for-routes (get-in system [server-name :server ::http/routes])))
 
 (defn service-fn [system] (get-in system [:pedestal :server ::http/service-fn]))
 
