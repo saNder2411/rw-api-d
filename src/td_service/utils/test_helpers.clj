@@ -5,10 +5,10 @@
             [clojure.string :as string])
   (:import (java.net ServerSocket)))
 
-(defn url-for-routes [system server-name]
-  (route/url-for-routes (get-in system [server-name :server ::http/routes])))
+(defn url-for-routes [system service-name]
+  (route/url-for-routes (get-in system [service-name :server ::http/routes])))
 
-(defn service-fn [system] (get-in system [:pedestal :server ::http/service-fn]))
+(defn service-fn [system service-name] (get-in system [service-name :server ::http/service-fn]))
 
 (defmacro with-system [[bound-var binding-exp] & body]
   `(let [~bound-var (component/start ~binding-exp)]

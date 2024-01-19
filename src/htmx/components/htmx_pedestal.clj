@@ -21,7 +21,7 @@
 (defn inject-dependencies
   [dependencies]
   (interceptor/interceptor
-    {:name ::inject-dependencies
+    {:name  ::inject-dependencies
      :enter (fn [context]
               (assoc context :dependencies dependencies))}))
 
@@ -33,20 +33,23 @@
     (println "Starting HTMXPedestalComponent")
     (if (:server this)
       this
-      (let [server (-> {::http/routes routes
-                        ::http/type   :jetty
-                        ::http/join?  false
-                        ::http/port   (-> config :server :port)
+      (let [server (-> {::http/routes         routes
+                        ::http/type           :jetty
+                        ::http/join?          false
+                        ::http/port           (-> config :server :port)
                         ::http/secure-headers {:content-security-policy-settings {:object-src "none"}}}
                        http/default-interceptors
                        (update ::http/interceptors into [(inject-dependencies this)])
                        http/create-server)]
-            (assoc this :server (cond-> server
-                                        (not (test? config)) http/start)))))
+        (assoc this :server (cond-> server
+                                    (not (test? config)) http/start)))))
   (stop [this]
     (println "Stopping HTMXPedestalComponent")
     (when (and (:server this) (not (test? config)))
       (http/stop (:server this)))
     (assoc this :server nil)))
 
-(defn create-htmx-pedestal [config] (map->HTMXPedestal {:config config}))
+(defn create-htmx-pedestal [config]
+  (if config
+    (map->HTMXPedestal {:config config})
+    {}))

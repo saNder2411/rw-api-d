@@ -19,7 +19,7 @@
 
 (deftest system-test
   (h/with-system [sut (core/services-system config)]
-                 (let [service (h/service-fn sut)
+                 (let [service (h/service-fn sut :td-pedestal)
                        url-for (h/url-for-routes sut :td-pedestal)]
                    (testing "/todo :post"
                      (let [url (url-for :list-create :query-params {:name "_TEST_"})

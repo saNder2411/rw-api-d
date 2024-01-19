@@ -41,7 +41,7 @@
 (defn combine-routes [routes]
   (->> routes (apply concat) set route/expand-routes))
 
-(defrecord Pedestal [config in-memory-db]
+(defrecord Pedestal [config in-memory-db data-source]
   component/Lifecycle
 
   (start [this]

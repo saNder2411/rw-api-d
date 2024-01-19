@@ -1,6 +1,7 @@
 (ns td-service.routes.list
   (:require [io.pedestal.http.route :as route]
             [io.pedestal.interceptor :as interceptor]
+            [next.jdbc :as jdbc]
             [td-service.db.atom-db :as m-db]))
 
 (defn response [status body & {:as headers}]
@@ -70,10 +71,20 @@
                                (cond-> ctx
                                        list-id (assoc :tx-data [m-db/delete-element :list-collection list-id]))))}))
 
+(def info-handler (interceptor/interceptor
+                    {:name  :info-handler
+                     :enter (fn [{:keys [dependencies] :as context}]
+
+                              (let [{:keys [data-source]} dependencies
+                                    db-res (first (jdbc/execute! (data-source) ["SHOW SERVER_VERSION"]))
+                                    body (str "Database server version: " (:server_version db-res))]
+                                (assoc context :response {:status 200 :body body})))}))
+
 
 (def routes
   #{["/todos" :post [entity-render db-interceptor list-create]]
     ["/todos" :get [entity-render db-interceptor lists-view]]
     ["/todos/:list-id" :get [entity-render db-interceptor list-view]]
     ["/todos/:list-id" :put [entity-render list-view db-interceptor list-update]]
-    ["/todos/:list-id" :delete [entity-render lists-view db-interceptor list-delete]]})
+    ["/todos/:list-id" :delete [entity-render lists-view db-interceptor list-delete]]
+    ["/info/todos" :get [info-handler]]})

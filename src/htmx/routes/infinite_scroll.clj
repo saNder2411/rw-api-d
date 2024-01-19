@@ -40,33 +40,27 @@
     :hx-swap    "outerHTML"}
    [:span (format "...loading page %s ..." next-page-number)]])
 
-(def layout (partial shared/layout "HTMX: Click to edit"
+(def layout (partial shared/layout "Infinite scroll"
                      ["https://cdn.tailwindcss.com"
                       "https://unpkg.com/htmx.org@1.9.4?plugins=forms"]))
 
-(def root-handler {:name ::root
-                   :enter
-                   (fn [{:keys [dependencies] :as context}]
-                     (let [initial-page-number 0
-                           items-page (items->page initial-page-number)
-                           response (-> [:div
-                                         [:h1 {:class "text-2xl font-bold leading-7 text-gray-900 mb-5 sm:p-0 p-6"}
-                                          "Infinite scroll"]
-                                         [:div.shadow-xl
-                                          (map item-component items-page)
-                                          (loader (inc initial-page-number))]]
-                                        (layout)
-                                        (shared/ok))]
-                       (assoc context :response response)))})
+(def root-handler {:name  ::root
+                   :enter (fn [ctx]
+                            (let [initial-page-number 0
+                                  items-page (items->page initial-page-number)
+                                  response (-> [:div.shadow-xl
+                                                (map item-component items-page)
+                                                (loader (inc initial-page-number))]
+                                               (layout)
+                                               (shared/ok))]
+                              (assoc ctx :response response)))})
 
 
 (def get-items-page-handler {:name ::get
                              :enter
-                             (fn [{:keys [dependencies] :as context}]
-                               #_(Thread/sleep 1000)
-                               (let [page-number (-> context :request :query-params :page parse-long)
+                             (fn [ctx]
+                               (let [page-number (-> ctx :request :query-params :page parse-long)
                                      items-page (items->page page-number)
-
                                      response (if (seq items-page)
                                                 (-> (mapv item-component items-page)
                                                     (conj (loader (inc page-number)))
@@ -75,7 +69,7 @@
                                                 (-> [:div.bg-green-100.p-10
                                                      [:span "nothing to load"]]
                                                     (shared/ok)))]
-                                 (assoc context :response response)))})
+                                 (assoc ctx :response response)))})
 
 (def routes
   #{["/htmx/infinite-scroll" :get [root-handler]]

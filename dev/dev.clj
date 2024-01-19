@@ -4,7 +4,7 @@
 
 (component-repl/set-init
   (fn [_old-system]
-    (core/services-system {:td_service {:env     :dev
+    (core/services-system {:td-service {:env     :dev
                                         :server  {:port 3001}
                                         :db-spec {:jdbcUrl  "jdbc:postgresql://localhost:5432/rwa"
                                                   :username "rwa"
