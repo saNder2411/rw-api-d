@@ -11,7 +11,7 @@
 
   (stop [this]
     (println "Stop TD_S InMemoryDB!")
-    (assoc this :db nil :htmx-click-to-edit-state nil)))
+    (assoc this :db nil)))
 
 (defn create-in-memory-db []
   (map->InMemoryDB {}))

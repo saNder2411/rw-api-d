@@ -2,8 +2,10 @@
   (:require [com.stuartsierra.component :as component]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
-            [clojure.string :as string])
-  (:import (java.net ServerSocket)))
+            [clojure.string :as string]
+            [td-service.components.data-source :as ds])
+  (:import (java.net ServerSocket)
+           (org.testcontainers.containers PostgreSQLContainer)))
 
 (defn url-for-routes [system service-name]
   (route/url-for-routes (get-in system [service-name :server ::http/routes])))
@@ -24,3 +26,11 @@
 (defn get-free-port []
   (with-open [socket (ServerSocket. 0)]
     (.getLocalPort socket)))
+
+
+(defn create-db-container []
+  (doto (PostgreSQLContainer. "postgres:15.4")))
+
+(defn datasource-only-system [config]
+  (component/system-map
+    :data-source (ds/create-data-source config)))

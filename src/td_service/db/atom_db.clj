@@ -36,6 +36,6 @@
 ;;;
 ;;; Domain functions
 ;;;
-(defn make-list [id nm] {:id id :name nm :item-ids []})
+(defn make-list [id title] {:_id id :title title :item-ids []})
 
-(defn make-item [id l-id item] (into {:id id :list-id l-id} item))
+(defn make-item [id l-id item] (into {:_id id :list-id l-id} item))

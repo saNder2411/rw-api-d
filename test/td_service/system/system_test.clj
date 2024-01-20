@@ -18,83 +18,99 @@
                                     :password "rwa"}}})
 
 (deftest system-test
-  (h/with-system [sut (core/services-system config)]
-                 (let [service (h/service-fn sut :td-pedestal)
-                       url-for (h/url-for-routes sut :td-pedestal)]
-                   (testing "/todo :post"
-                     (let [url (url-for :list-create :query-params {:name "_TEST_"})
-                           {:keys [status body]} (response-for service :post url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (swap! test-list-id (fn [_] (:id body-clj-map)))
-                       (is (= 201 status))
-                       (is (= "_TEST_" (:name body-clj-map)))))
+  (let [db-container (h/create-db-container)]
+    (try
+      (.start db-container)
+      (h/with-system [sut (core/services-system (assoc-in config [:td-service :db-spec] {:jdbcUrl  (.getJdbcUrl db-container)
+                                                                                         :username (.getUsername db-container)
+                                                                                         :password (.getPassword db-container)}))]
+                     (let [service (h/service-fn sut :td-pedestal)
+                           url-for (h/url-for-routes sut :td-pedestal)]
+                       (testing "/todos :post"
+                         (let [url (url-for :list-create :query-params {:title "_TEST_"})
+                               {:keys [status body]} (response-for service :post url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "CREATE_RES:" body-clj-map)
+                           (swap! test-list-id (fn [_] (str (:id body-clj-map))))
+                           (is (= 201 status))
+                           (is (= "_TEST_" (:title body-clj-map)))))
 
-                   (testing "/todo :get"
-                     (let [url (url-for :lists-view)
-                           {:keys [status body]} (response-for service :get url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (contains? body-clj-map @test-list-id))))
+                       (testing "/todo :get"
+                         (let [url (url-for :lists-view)
+                               {:keys [status body]} (response-for service :get url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "GET_ALL_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (some #(= (str (:id %)) @test-list-id) body-clj-map))))
 
-                   (testing "/todo/:list-id :get"
-                     (let [url (url-for :list-view :path-params {:list-id @test-list-id})
-                           {:keys [status body]} (response-for service :get url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (= @test-list-id (:id body-clj-map)))
-                       (is (= "_TEST_" (:name body-clj-map)))))
+                       (testing "/todo/:list-id :get"
+                         (let [url (url-for :list-view :path-params {:list-id @test-list-id})
+                               {:keys [status body]} (response-for service :get url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "GET_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (= @test-list-id (str (:id body-clj-map))))
+                           (is (= "_TEST_" (:title body-clj-map)))))
 
-                   (testing "/todo/:list-id :put"
-                     (let [url (url-for :list-update :path-params {:list-id @test-list-id} :query-params {:name "_TEST_!"})
-                           {:keys [status body]} (response-for service :put url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (= @test-list-id (:id body-clj-map)))
-                       (is (= "_TEST_!" (:name body-clj-map)))))
+                       (testing "/todo/:list-id :put"
+                         (let [url (url-for :list-update :path-params {:list-id @test-list-id} :query-params {:title "_TEST_!"})
+                               {:keys [status body]} (response-for service :put url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "PUT_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (= @test-list-id (str (:id body-clj-map))))
+                           (is (= "_TEST_!" (:title body-clj-map)))))
 
-                   (testing "/todo/:list-id :post"
-                     (let [url (url-for :list-item-create :path-params {:list-id @test-list-id})
-                           headers {"Accept"       "application/edn"
-                                    "Content-Type" "application/json"}
-                           body (json/write-str {:name "_TEST_ITEM_" :done? false})
-                           {:keys [status body]} (response-for service :post url :headers headers :body body)
-                           body-clj-map (read-string body)]
-                       (swap! test-item-id (fn [_] (:id body-clj-map)))
-                       (is (= 201 status))
-                       (is (= "_TEST_ITEM_" (:name body-clj-map)))))
+                       (testing "/todo/:list-id :post"
+                         (let [url (url-for :list-item-create :path-params {:list-id @test-list-id})
+                               headers {"Accept"       "application/edn"
+                                        "Content-Type" "application/json"}
+                               body (json/write-str {:title "_TEST_ITEM_" :done false})
+                               {:keys [status body]} (response-for service :post url :headers headers :body body)
+                               body-clj-map (read-string body)]
+                           (println "ITEM_POST_RES:" body-clj-map)
+                           (swap! test-item-id (fn [_] (str (:id body-clj-map))))
+                           (is (= 201 status))
+                           (is (= "_TEST_ITEM_" (:title body-clj-map)))))
 
-                   (testing "/todo/:list-id/:item-id :get"
-                     (let [url (url-for :list-item-view :path-params {:list-id @test-list-id :item-id @test-item-id})
-                           {:keys [status body]} (response-for service :get url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (= @test-item-id (:id body-clj-map)))
-                       (is (= "_TEST_ITEM_" (:name body-clj-map)))))
+                       (testing "/todo/:list-id/:item-id :get"
+                         (let [url (url-for :list-item-view :path-params {:list-id @test-list-id :item-id @test-item-id})
+                               {:keys [status body]} (response-for service :get url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "ITEM_GET_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (= @test-item-id (str (:id body-clj-map))))
+                           (is (= "_TEST_ITEM_" (:title body-clj-map)))))
 
-                   (testing "/todo/:list-id/:item-id :put"
-                     (let [url (url-for
-                                 :list-item-update
-                                 :path-params {:list-id @test-list-id :item-id @test-item-id}
-                                 :query-params {:name "_TEST_ITEM_!"})
-                           {:keys [status body]} (response-for service :put url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (= @test-item-id (:id body-clj-map)))
-                       (is (= "_TEST_ITEM_!" (:name body-clj-map)))))
+                       (testing "/todo/:list-id/:item-id :put"
+                         (let [url (url-for
+                                     :list-item-update
+                                     :path-params {:list-id @test-list-id :item-id @test-item-id}
+                                     :query-params {:title "_TEST_ITEM_!"})
+                               {:keys [status body]} (response-for service :put url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "ITEM_PUT_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (= @test-item-id (str (:id body-clj-map))))
+                           (is (= "_TEST_ITEM_!" (:title body-clj-map)))))
 
-                   (testing "/todo/:list-id/:item-id :delete"
-                     (let [url (url-for :list-item-delete :path-params {:list-id @test-list-id :item-id @test-item-id})
-                           {:keys [status body]} (response-for service :delete url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (not (contains? (:items body-clj-map) @test-item-id)))))
+                       (testing "/todo/:list-id/:item-id :delete"
+                         (let [url (url-for :list-item-delete :path-params {:list-id @test-list-id :item-id @test-item-id})
+                               {:keys [status body]} (response-for service :delete url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "ITEM_DEL_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (not (some #(= (str (:id %)) @test-list-id) body-clj-map)))))
 
-                   (testing "/todo/:list-id :delete"
-                     (let [url (url-for :list-delete :path-params {:list-id @test-list-id})
-                           {:keys [status body]} (response-for service :delete url :headers {"Accept" "application/edn"})
-                           body-clj-map (read-string body)]
-                       (is (= 200 status))
-                       (is (not (contains? body-clj-map @test-list-id))))))))
+                       (testing "/todo/:list-id :delete"
+                         (let [url (url-for :list-delete :path-params {:list-id @test-list-id})
+                               {:keys [status body]} (response-for service :delete url :headers {"Accept" "application/edn"})
+                               body-clj-map (read-string body)]
+                           (println "DEL_RES:" body-clj-map)
+                           (is (= 200 status))
+                           (is (not (some #(= (str (:id %)) @test-list-id) body-clj-map)))))))
+      (finally
+        (.stop db-container)))))
 
 
 (comment

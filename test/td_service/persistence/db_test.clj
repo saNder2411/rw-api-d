@@ -22,6 +22,5 @@
         (.stop db-container)))))
 
 (comment
-  (simple-persistence-test)
   (run-tests)
   )

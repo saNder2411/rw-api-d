@@ -18,7 +18,6 @@
            org.postgresql/postgresql         {:mvn/version "42.7.1"}
            com.zaxxer/HikariCP               {:mvn/version "5.0.1"}
            com.github.seancorfield/honeysql  {:mvn/version "2.5.1103"}
-
            org.flywaydb/flyway-core          {:mvn/version "9.21.2"}
 
            hiccup/hiccup                     {:mvn/version "2.0.0-RC2"}

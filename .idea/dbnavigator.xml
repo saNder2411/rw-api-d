@@ -13,8 +13,8 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="952e7075-dbcf-4a68-a2bf-ffc78cf2fe8e">
-      <console name="Connection" type="STANDARD" schema="public" session="Main"><![CDATA[select 1;
-show server_version;]]></console>
+      <console name="Connection" type="STANDARD" schema="public" session="Main"><![CDATA[TRUNCATE TABLE lists]]></console>
+      <console name="rwa@localhost" type="STANDARD" schema="" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">
@@ -26,8 +26,15 @@ show server_version;]]></console>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="952e7075-dbcf-4a68-a2bf-ffc78cf2fe8e" />
   </component>
+  <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="952e7075-dbcf-4a68-a2bf-ffc78cf2fe8e" dataset="public.items" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="952e7075-dbcf-4a68-a2bf-ffc78cf2fe8e" dataset="public.lists" active-filter-id="EMPTY_FILTER" />
+  </component>
   <component name="DBNavigator.Project.ExecutionManager">
     <retain-sticky-names value="false" />
+  </component>
+  <component name="DBNavigator.Project.FileConnectionMappingManager">
+    <mapping file-url="file://$PROJECT_DIR$/resources/database/migrations/V1__add_todo_tables.sql" connection-id="virtual-postgres-connection" session-id="MAIN" current-schema="" />
   </component>
   <component name="DBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
@@ -439,7 +446,7 @@ show server_version;]]></console>
         <sorting-element type="RESERVED_WORD" id="parameter" />
       </sorting>
       <format>
-        <enforce-code-style-case value="true" />
+        <enforce-code-style-case value="false" />
       </format>
     </code-completion-settings>
     <execution-engine-settings>
