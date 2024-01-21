@@ -4,11 +4,18 @@
             [io.pedestal.http.body-params :as body-params]
             [td-service.db.postgresql :as db]
             [td-service.routes.list :as l]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [malli.core :as m]))
 
 (s/defschema ItemJson
   {:title s/Str
    :done  s/Bool})
+
+(def ItemJsonSchema
+  (m/schema
+    [:map
+     [:title :string]
+     [:done :boolean]]))
 
 (def list-item-create (interceptor/interceptor
                         {:name  :list-item-create
